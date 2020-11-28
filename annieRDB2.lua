@@ -1,3 +1,9 @@
+--[[
+Code by: rikirayo
+Version: 0.0.1
+Published: 28/11/2020
+]]
+
 if Player.CharName ~= "Annie" then return end
 require("common.log")
 module("annieRDB2", package.seeall, log.setup)
