@@ -1,6 +1,6 @@
 --[[
 Code by: rikirayo
-Version: 1.0.0
+Version: 0.0.2
 Published: 28/11/2020
 ]]
 
@@ -98,24 +98,18 @@ end
 
 function Annie.auto()
     if Menu.Get("Burst") then
-        if spells.Q:IsReady() and spells.W:IsReady() and spells.R:IsReady() then
-            local RawBurst = Annie.BurstDamage()
-            for k,target in ipairs(Annie.GetTargets(600)) do
-                local Burst = DmgLib.CalculateMagicalDamage(Player, target, RawBurst)
-                local health = spells.R:GetKillstealHealth(target)
-                if Burst > health then
-                    if spells.E:IsReady() then
-                        spells.E:Cast(Player)
-                    end
-                    if spells.R:IsReady() then
-                        spells.R:Cast(target)
-                    end
-                    if spells.Q:IsReady() then
-                        spells.Q:Cast(target)
-                    end
-                    if spells.W:IsReady() then
-                        spells.W:Cast(target)
-                    end
+        local RawBurst = Annie.BurstDamage()
+        for k,target in ipairs(Annie.GetTargets(600)) do
+            local Burst = DmgLib.CalculateMagicalDamage(Player, target, RawBurst)
+            local health = spells.R:GetKillstealHealth(target)
+            if Burst > health then
+                if spells.Q:IsReady() and spells.Q:Cast(target) then
+                end
+                if spells.E:IsReady() and spells.E:Cast(Player) then
+                end
+                if spells.W:IsReady() and spells.W:Cast(target) then
+                end
+                if spells.R:IsReady() and spells.R:Cast(target)then
                 end
             end
         end
