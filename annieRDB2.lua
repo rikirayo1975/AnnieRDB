@@ -1,6 +1,6 @@
 --[[
 Code by: rikirayo
-Version: 0.0.2
+Version: 1.0.0
 Published: 28/11/2020
 ]]
 
