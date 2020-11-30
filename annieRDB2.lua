@@ -170,22 +170,19 @@ end
 function Annie.Combo()
     if Menu.Get("CQ") then
         for k, qTarget in ipairs(Annie.GetTargets(spells.Q.Range)) do
-            if spells.Q:Cast(qTarget) then
-                return
+            if spells.Q:IsReady() and spells.Q:Cast(qTarget) then
             end
         end
     end
     if Menu.Get("CW") then
         for k,wTarget in ipairs(Annie.GetTargets(spells.W.Range)) do
-            if spells.W:Cast(wTarget) then
-                return
+            if spells.W:IsReady() and spells.W:Cast(wTarget) then
             end
         end
     end
     if Menu.Get("CR") then
         for k,RTarget in ipairs(Annie.GetTargets(spells.R.Range)) do
-            if spells.R:Cast(RTarget) then
-                return
+            if spells.R:IsReady() and spells.R:Cast(RTarget) then
             end
         end
     end
@@ -203,34 +200,34 @@ end
 
 
 
-	function Annie.LoadMenu()
-		Menu.RegisterMenu("AnnieRDB2","AnnieRDB2",function ()
-			Menu.ColumnLayout("cols", "cols", 4, true, function()
-				Menu.ColoredText("WaveClear", 0x0099FFFF, false)
-   				Menu.Checkbox("farmQ", "Use Q", true)
-   				TS = _G.Libs.TargetSelector()
+function Annie.LoadMenu()
+	Menu.RegisterMenu("AnnieRDB2","AnnieRDB2",function ()
+		Menu.ColumnLayout("cols", "cols", 4, true, function()
+			Menu.ColoredText("WaveClear", 0x0099FFFF, false)
+				Menu.Checkbox("farmQ", "Use Q", true)
+				TS = _G.Libs.TargetSelector()
 
-                Menu.NextColumn()
-                Menu.ColoredText("Combo", 0X0099FFFF,false)
-                Menu.Checkbox("CQ", "Use Q", true)
-                Menu.Checkbox("CW", "Use W", true)
-                Menu.Checkbox("CR","Use R",true)
-                Menu.NextColumn()
-                Menu.ColoredText("Harass", 0X0099FFFF,false)
-                Menu.Checkbox("HQ", "Use Q", true)
-                Menu.Checkbox("HW", "Use W", true)
-                Menu.NextColumn()
-                Menu.ColoredText("AutoSpells", 0X0099FFFF,false)
-                Menu.Checkbox("Burst", "Burst", true)
-   			end)
-            Menu.Separator()
-            Menu.ColoredText("Draws", 0X0099FFFF, false)
-            Menu.Checkbox("DQ","Q range",true)
-            Menu.Checkbox("DW","W range",true)
-            Menu.Checkbox("DE","E range",true)
-            Menu.Checkbox("DR","R range",true)
-		end)
-	end
+            Menu.NextColumn()
+            Menu.ColoredText("Combo", 0X0099FFFF,false)
+            Menu.Checkbox("CQ", "Use Q", true)
+            Menu.Checkbox("CW", "Use W", true)
+            Menu.Checkbox("CR","Use R",true)
+            Menu.NextColumn()
+            Menu.ColoredText("Harass", 0X0099FFFF,false)
+            Menu.Checkbox("HQ", "Use Q", true)
+            Menu.Checkbox("HW", "Use W", true)
+            Menu.NextColumn()
+            Menu.ColoredText("AutoSpells", 0X0099FFFF,false)
+            Menu.Checkbox("Burst", "Burst", true)
+			end)
+        Menu.Separator()
+        Menu.ColoredText("Draws", 0X0099FFFF, false)
+        Menu.Checkbox("DQ","Q range",true)
+        Menu.Checkbox("DW","W range",true)
+        Menu.Checkbox("DE","E range",true)
+        Menu.Checkbox("DR","R range",true)
+	end)
+end
 
 
 function OnLoad()
