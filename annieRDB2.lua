@@ -1,6 +1,6 @@
 --[[
 Code by: rikirayo
-Version: 0.0.1
+Version: 0.0.2
 Published: 28/11/2020
 ]]
 
@@ -29,6 +29,10 @@ local spells = {
         Delay = 0.25,
         Type = "Linear"
     }),
+    E = Spell.Targeted({
+        Slot = SpellSlots.E,
+        Range = 800
+    }),
     R = Spell.Skillshot({
         Slot = SpellSlots.R,
         Range = 600,
@@ -41,6 +45,14 @@ local function Game_ON()
 	--juego activo, no muerto, etc.
 	return not (Game.IsChatOpen() or Game.IsMinimized() or Player.IsDead or Player.IsRecalling)
 end
+function Annie.OnDraw()
+    local PP = Player.Position
+    Renderer.DrawCircle3D(PP,spells.Q.Range,30,2,0x0099FFFF)
+    Renderer.DrawCircle3D(PP,spells.W.Range,30,2,0x0099FFFF)
+    Renderer.DrawCircle3D(PP,spells.E.Range,30,2,0x0099FFFF)
+    Renderer.DrawCircle3D(PP,spells.R.Range,30,2,0x0099FFFF)
+end
+
 	--Calculo el daño de la Q
 function Annie.QRawDamage()
 	-- 80 / 115 / 150 / 185 / 220 (+ 80% PH)
@@ -57,6 +69,12 @@ function Annie.RRawDamage()
     local AnnieR = {150,275,400}
     return AnnieR[spells.R:GetLevel()]+(Player.TotalAP* 0.75)
 end
+function Annie.BurstDamage()
+    local QDmg = Annie.QRawDamage()
+    local WDmg= Annie.WRawDamage()
+    local RDmg= Annie.RRawDamage()
+    return QDmg + WDmg + RDmg
+end
 function Annie.OnTick()
     	--comprobamos que el juego este activo
     	if not Game_ON() then return end
@@ -67,10 +85,38 @@ function Annie.OnTick()
     if ModeToExecute then
         ModeToExecute()
     end
+    if Annie.auto() then return end
 end
+
+function Annie.auto()
+    if Menu.Get("Burst") then
+        if spells.Q:IsReady() and spells.W:IsReady() and spells.R:IsReady() then
+            local RawBurst = Annie.BurstDamage()
+            for k,target in ipairs(Annie.GetTargets(600)) do
+                local Burst = DmgLib.CalculateMagicalDamage(Player, target, RawBurst)
+                local health = spells.R:GetKillstealHealth(target)
+                if Burst > health then
+                    if spells.E:IsReady() then
+                        spells.E:Cast(Player)
+                    end
+                    if spells.R:IsReady() then
+                        spells.R:Cast(target)
+                    end
+                    if spells.Q:IsReady() then
+                        spells.Q:Cast(target)
+                    end
+                    if spells.W:IsReady() then
+                        spells.W:Cast(target)
+                    end
+                end
+            end
+        end
+    end
+end
+
 function Annie.GetTargets(range)
     return {TS:GetTarget(range, true)}
-end
+end     
 function Annie.FarmLogic(minions)
     local rawDmg = Annie.QRawDamage()
     for k, minion in ipairs(minions) do
@@ -82,51 +128,92 @@ function Annie.FarmLogic(minions)
         end                       
     end    
 end
+
 function Annie.GetMinionsQ(t, team_lbl)
-    for k, v in pairs(ObjManager.Get(team_lbl, "minions")) do
-        local minion = v.AsAI
-        local minionInRange = minion and minion.MaxHealth > 6 and spells.Q:IsInRange(minion)
-        local shouldIgnoreMinion = minion and (Orbwalker.IsLasthitMinion(minion) or Orbwalker.IsIgnoringMinion(minion))
-        if minionInRange and not shouldIgnoreMinion and minion.IsTargetable then
-            insert(t, minion)
-        end                       
+    if Menu.Get("farmQ") then
+        for k, v in pairs(ObjManager.Get(team_lbl, "minions")) do
+            local minion = v.AsAI
+            local minionInRange = minion and minion.MaxHealth > 6 and spells.Q:IsInRange(minion)
+            local shouldIgnoreMinion = minion and (Orbwalker.IsLasthitMinion(minion) or Orbwalker.IsIgnoringMinion(minion))
+            if minionInRange and not shouldIgnoreMinion and minion.IsTargetable then
+                insert(t, minion)
+            end                       
+        end
     end
 end
+
 function Annie.Harass()
-    for k, qTarget in ipairs(Annie.GetTargets(spells.Q.Range)) do
+    if Menu.Get("HQ") then
+        for k, qTarget in ipairs(Annie.GetTargets(spells.Q.Range)) do
         if spells.Q:Cast(qTarget) then
             return
         end
-    end
-end
-function Annie.Combo()
-    Annie.Harass()
-    for k,wTarget in ipairs(Annie.GetTargets(spells.W.Range)) do
-        if spells.W:CastOnHitChance(wTarget, 0.8) then
-            return
         end
     end
-    for k,RTarget in ipairs(Annie.GetTargets(spells.R.Range)) do
-        if spells.R:CastOnHitChance(RTarget, 0.8) then
-            return
+    if Menu.Get("HW") then
+        for k,wTarget in ipairs(Annie.GetTargets(spells.W.Range)) do
+            if spells.W:Cast(wTarget) then
+                return
+            end
+        end
+    end
+end
+
+function Annie.Combo()
+    if Menu.Get("CQ") then
+        for k, qTarget in ipairs(Annie.GetTargets(spells.Q.Range)) do
+            if spells.Q:Cast(qTarget) then
+                return
+            end
+        end
+    end
+    if Menu.Get("CW") then
+        for k,wTarget in ipairs(Annie.GetTargets(spells.W.Range)) do
+            if spells.W:Cast(wTarget) then
+                return
+            end
+        end
+    end
+    if Menu.Get("CR") then
+        for k,RTarget in ipairs(Annie.GetTargets(spells.R.Range)) do
+            if spells.R:Cast(RTarget) then
+                return
+            end
         end
     end
 end
 
 function Annie.Waveclear()
-    local minionsInRange = {}
-    do -- Llenar la variable con los minions en rango
-       Annie.GetMinionsQ(minionsInRange, "enemy")       
-       sort(minionsInRange, function(a, b) return a.MaxHealth > b.MaxHealth end)
-    end
-    Annie.FarmLogic(minionsInRange)
+        local minionsInRange = {}
+        do -- Llenar la variable con los minions en rango
+           Annie.GetMinionsQ(minionsInRange, "enemy")       
+           sort(minionsInRange, function(a, b) return a.MaxHealth > b.MaxHealth end)
+        end
+        Annie.FarmLogic(minionsInRange)
 end
+
+
+
+
 	function Annie.LoadMenu()
 		Menu.RegisterMenu("AnnieRDB2","AnnieRDB2",function ()
-			Menu.ColumnLayout("cols", "cols", 3, true, function()
-				Menu.ColoredText("FarmQ", 0x0099FFFF, false)
-   				Menu.Checkbox("FarmQ", "Use", true)
+			Menu.ColumnLayout("cols", "cols", 4, true, function()
+				Menu.ColoredText("WaveClear", 0x0099FFFF, false)
+   				Menu.Checkbox("farmQ", "Use Q", true)
    				TS = _G.Libs.TargetSelector()
+
+                Menu.NextColumn()
+                Menu.ColoredText("Combo", 0X0099FFFF,false)
+                Menu.Checkbox("CQ", "Use Q", true)
+                Menu.Checkbox("CW", "Use W", true)
+                Menu.Checkbox("CR","Use R",true)
+                Menu.NextColumn()
+                Menu.ColoredText("Harass", 0X0099FFFF,false)
+                Menu.Checkbox("HQ", "Use Q", true)
+                Menu.Checkbox("HW", "Use W", true)
+                Menu.NextColumn()
+                Menu.ColoredText("AutoSpells", 0X0099FFFF,false)
+                Menu.Checkbox("Burst", "Burst", true)
    			end)
 		end)
 	end
