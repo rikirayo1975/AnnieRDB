@@ -47,10 +47,18 @@ local function Game_ON()
 end
 function Annie.OnDraw()
     local PP = Player.Position
-    Renderer.DrawCircle3D(PP,spells.Q.Range,30,2,0x0099FFFF)
-    Renderer.DrawCircle3D(PP,spells.W.Range,30,2,0x0099FFFF)
-    Renderer.DrawCircle3D(PP,spells.E.Range,30,2,0x0099FFFF)
-    Renderer.DrawCircle3D(PP,spells.R.Range,30,2,0x0099FFFF)
+    if Menu.Get("DQ")then
+        Renderer.DrawCircle3D(PP,spells.Q.Range,30,2,0x0099FFFF)
+    end
+    if Menu.Get("DW") then
+        Renderer.DrawCircle3D(PP,spells.W.Range,30,2,0x0099FFFF)
+    end
+    if Menu.Get("DE") then
+        Renderer.DrawCircle3D(PP,spells.E.Range,30,2,0x0099FFFF)
+    end
+    if Menu.Get("DR") then
+        Renderer.DrawCircle3D(PP,spells.R.Range,30,2,0x0099FFFF)
+    end
 end
 
 	--Calculo el daño de la Q
@@ -215,6 +223,12 @@ end
                 Menu.ColoredText("AutoSpells", 0X0099FFFF,false)
                 Menu.Checkbox("Burst", "Burst", true)
    			end)
+            Menu.Separator()
+            Menu.ColoredText("Draws", 0X0099FFFF, false)
+            Menu.Checkbox("DQ","Q range",true)
+            Menu.Checkbox("DW","W range",true)
+            Menu.Checkbox("DE","E range",true)
+            Menu.Checkbox("DR","R range",true)
 		end)
 	end
 
