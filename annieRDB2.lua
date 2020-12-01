@@ -64,18 +64,15 @@ end
 	--Calculo el daño de la Q
 function Annie.QRawDamage()
 	-- 80 / 115 / 150 / 185 / 220 (+ 80% PH)
-	local AnnieQ = {80,115,150,185,220}
-	return AnnieQ[spells.Q:GetLevel()]+(Player.TotalAP * 0.8)
+	return (35*spells.Q:GetLevel()+45)+(Player.TotalAP * 0.8)
 end
 function Annie.WRawDamage()
     -- 70 / 115 / 160 / 205 / 250 (+ 85% PH)
-    local AnnieW = {70,115,160,185,220}
-    return AnnieW[spells.W:GetLevel()]+(Player.TotalAP * 0.85)
+    return (45*spells.W:GetLevel()+25)+(Player.TotalAP * 0.85)
 end
 function Annie.RRawDamage()
     -- 150 / 275 / 400 (+ 75% PH)
-    local AnnieR = {150,275,400}
-    return AnnieR[spells.R:GetLevel()]+(Player.TotalAP* 0.75)
+    return (125*spells.R:GetLevel()+25)+(Player.TotalAP* 0.75)
 end
 function Annie.BurstDamage()
     local QDmg = Annie.QRawDamage()
