@@ -1,6 +1,6 @@
 --[[
 Code by: rikirayo
-Version: 1.0.1
+Version: 1.0.2
 Published: 28/11/2020
 ]]
 
@@ -58,6 +58,15 @@ function Annie.OnDraw()
     end
     if Menu.Get("DR") then
         Renderer.DrawCircle3D(PP,spells.R.Range,30,2,0x0099FFFF)
+    end
+end
+
+function Annie.OnGapclose(source,dash)
+    if not (source.IsEnemy and Menu.Get("GE") and spells.E:IsReady()) then return end
+    local paths = dash:GetPaths()
+    local endPos = paths[#paths].EndPos
+    if source:Distance(Player) < 400 then
+        spells.E:Cast(Player)
     end
 end
 
@@ -210,6 +219,7 @@ function Annie.LoadMenu()
             Menu.NextColumn()
             Menu.ColoredText("AutoSpells", 0X0099FFFF,false)
             Menu.Checkbox("Burst", "Burst", true)
+            Menu.Checkbox("GE","auto e",true)
 			end)
         Menu.Separator()
         Menu.ColoredText("Draws", 0X0099FFFF, false)
