@@ -14,7 +14,7 @@ local insert, sort = table.insert, table.sort
 local Console, ObjManager, EventManager, Geometry, Input, Renderer, Enums, Game = _SDK.Console, _SDK.ObjectManager, _SDK.EventManager, _SDK.Geometry, _SDK.Input, _SDK.Renderer, _SDK.Enums, _SDK.Game
 local Menu, Orbwalker, Collision, Prediction, HealthPred = _G.Libs.NewMenu, _G.Libs.Orbwalker, _G.Libs.CollisionLib, _G.Libs.Prediction, _G.Libs.HealthPred
 local DmgLib, ImmobileLib, Spell = _G.Libs.DamageLib, _G.Libs.ImmobileLib, _G.Libs.Spell
-local TS
+local TS = _G.Libs.TargetSelector()
 local SpellSlots, SpellStates = Enums.SpellSlots, Enums.SpellStates
 local Annie = {}
 local spells = {
@@ -103,6 +103,8 @@ function Annie.OnTick()
 end
 
 function Annie.auto()
+    local test = Player:GetBuff("pyromania")
+    print (test)
     if Menu.Get("Burst") then
         local RawBurst = Annie.BurstDamage()
         for k,target in ipairs(Annie.GetTargets(600)) do
@@ -151,7 +153,7 @@ function Annie.GetMinionsQ(t, team_lbl)
 end
 
 function Annie.Harass()
-    if Menu.Get("HQ") then
+    if Menu.Get("HQ") and spells.Q:IsReady() then
         for k, qTarget in ipairs(Annie.GetTargets(spells.Q.Range)) do
         if spells.Q:Cast(qTarget) then
             return
@@ -168,22 +170,14 @@ function Annie.Harass()
 end
 
 function Annie.Combo()
-    if Menu.Get("CQ") then
-        for k, qTarget in ipairs(Annie.GetTargets(spells.Q.Range)) do
-            if spells.Q:IsReady() and spells.Q:Cast(qTarget) then
-            end
+
+    Orbwalker.BlockAttack()
+    for k, Target in ipairs(Annie.GetTargets(spells.Q.Range)) do
+        if Menu.Get("CQ") and spells.Q:IsReady() and spells.Q:Cast(Target) then
         end
-    end
-    if Menu.Get("CW") then
-        for k,wTarget in ipairs(Annie.GetTargets(spells.W.Range)) do
-            if spells.W:IsReady() and spells.W:Cast(wTarget) then
-            end
+        if Menu.Get("CW") and spells.W:IsReady() and spells.W:Cast(Target) then
         end
-    end
-    if Menu.Get("CR") then
-        for k,RTarget in ipairs(Annie.GetTargets(spells.R.Range)) do
-            if spells.R:IsReady() and spells.R:Cast(RTarget) then
-            end
+        if Menu.Get("CR") and spells.R:IsReady() and spells.R:Cast(Target) then
         end
     end
 end
@@ -219,7 +213,7 @@ function Annie.LoadMenu()
             Menu.NextColumn()
             Menu.ColoredText("AutoSpells", 0X0099FFFF,false)
             Menu.Checkbox("Burst", "Burst", true)
-            Menu.Checkbox("GE","auto e",true)
+            Menu.Checkbox("GE","E when gapclose",true)
 			end)
         Menu.Separator()
         Menu.ColoredText("Draws", 0X0099FFFF, false)
