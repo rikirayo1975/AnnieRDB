@@ -17,6 +17,7 @@ local DmgLib, ImmobileLib, Spell = _G.Libs.DamageLib, _G.Libs.ImmobileLib, _G.Li
 local TS = _G.Libs.TargetSelector()
 local SpellSlots, SpellStates = Enums.SpellSlots, Enums.SpellStates
 local Annie = {}
+local passive = 0
 local spells = {
 	Q = Spell.Targeted({
 		Slot = SpellSlots.Q,
@@ -96,6 +97,18 @@ function Annie.OnTick()
     	if not Orbwalker.CanCast() then return end
     	--ejecutamos el orbwalker que toca
 	local ModeToExecute = Annie[Orbwalker.GetMode()]
+    if Player:GetBuff("anniepassivestack") then
+        local ppassive = Player:GetBuff("anniepassivestack")
+        passive = ppassive.Count
+    else 
+        if Player:GetBuff("anniepassiveprimed") then
+           passive = 4
+        else
+            passive = 0
+        end
+    end
+
+
     if ModeToExecute then
         ModeToExecute()
     end
@@ -103,8 +116,6 @@ function Annie.OnTick()
 end
 
 function Annie.auto()
-    local test = Player:GetBuff("pyromania")
-    print (test)
     if Menu.Get("Burst") then
         local RawBurst = Annie.BurstDamage()
         for k,target in ipairs(Annie.GetTargets(600)) do
@@ -127,7 +138,7 @@ end
 function Annie.GetTargets(range)
     return {TS:GetTarget(range, true)}
 end     
-function Annie.FarmLogic(minions)
+function Annie.QFarmLogic(minions)
     local rawDmg = Annie.QRawDamage()
     for k, minion in ipairs(minions) do
         local healthPred = spells.Q:GetHealthPred(minion)
@@ -136,6 +147,25 @@ function Annie.FarmLogic(minions)
 
             return true
         end                       
+    end    
+end
+function Annie.WFarmLogic(minions)
+    local count = {}
+    local SP
+    for k, minion in ipairs(minions) do
+        SP = Player.Position:Extended(minion.Position, spells.W.Range)
+        local minion = minion.AsAI
+        if minion and minion.IsTargetable then
+            local predPos = minion:FastPrediction(spells.W.Delay)
+            local dist = predPos:Distance(Player.Position)
+            if dist < spells.W.Range then 
+                count[#count + 1] = predPos
+            end                     
+        end
+    end
+    local BP, hcount = Geometry.BestCoveringCircle(count,SP,86)
+    if BP and hcount >= 1 then
+            return spells.W:Cast(BP)
     end    
 end
 
@@ -183,12 +213,15 @@ function Annie.Combo()
 end
 
 function Annie.Waveclear()
+    if passive < Menu.Get("WP") then
         local minionsInRange = {}
         do -- Llenar la variable con los minions en rango
            Annie.GetMinionsQ(minionsInRange, "enemy")       
            sort(minionsInRange, function(a, b) return a.MaxHealth > b.MaxHealth end)
         end
-        Annie.FarmLogic(minionsInRange)
+        Annie.QFarmLogic(minionsInRange)   
+        Annie.WFarmLogic(minionsInRange)
+    end
 end
 
 
@@ -199,6 +232,7 @@ function Annie.LoadMenu()
 		Menu.ColumnLayout("cols", "cols", 4, true, function()
 			Menu.ColoredText("WaveClear", 0x0099FFFF, false)
 				Menu.Checkbox("farmQ", "Use Q", true)
+                Menu.Slider("WP", "Save Passive Charges", 3, 3 ,4, 1) 
 				TS = _G.Libs.TargetSelector()
 
             Menu.NextColumn()
