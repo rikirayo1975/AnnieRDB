@@ -183,17 +183,20 @@ function Annie.GetMinionsQ(t, team_lbl)
 end
 
 function Annie.Harass()
-    if Menu.Get("HQ") and spells.Q:IsReady() then
-        for k, qTarget in ipairs(Annie.GetTargets(spells.Q.Range)) do
-        if spells.Q:Cast(qTarget) then
-            return
-        end
-        end
-    end
-    if Menu.Get("HW") then
-        for k,wTarget in ipairs(Annie.GetTargets(spells.W.Range)) do
-            if spells.W:Cast(wTarget) then
+    local mana = Player.AsAttackableUnit.ManaPercent*100
+    if(mana >= Menu.Get("HM")) then
+        if Menu.Get("HQ") and spells.Q:IsReady() then
+            for k, qTarget in ipairs(Annie.GetTargets(spells.Q.Range)) do
+            if spells.Q:Cast(qTarget) then
                 return
+            end
+            end
+        end
+        if Menu.Get("HW") then
+            for k,wTarget in ipairs(Annie.GetTargets(spells.W.Range)) do
+                if spells.W:Cast(wTarget) then
+                    return
+                end
             end
         end
     end
@@ -213,14 +216,17 @@ function Annie.Combo()
 end
 
 function Annie.Waveclear()
-    if passive < Menu.Get("WP") then
-        local minionsInRange = {}
-        do -- Llenar la variable con los minions en rango
-           Annie.GetMinionsQ(minionsInRange, "enemy")       
-           sort(minionsInRange, function(a, b) return a.MaxHealth > b.MaxHealth end)
+    local mana = Player.AsAttackableUnit.ManaPercent*100
+    if(mana >= Menu.Get("WM")) then
+        if passive < Menu.Get("WP") then
+            local minionsInRange = {}
+            do -- Llenar la variable con los minions en rango
+               Annie.GetMinionsQ(minionsInRange, "enemy")       
+               sort(minionsInRange, function(a, b) return a.MaxHealth > b.MaxHealth end)
+            end
+            Annie.QFarmLogic(minionsInRange)   
+            Annie.WFarmLogic(minionsInRange)
         end
-        Annie.QFarmLogic(minionsInRange)   
-        Annie.WFarmLogic(minionsInRange)
     end
 end
 
@@ -231,6 +237,7 @@ function Annie.LoadMenu()
 	Menu.RegisterMenu("AnnieRDB2","AnnieRDB2",function ()
 		Menu.ColumnLayout("cols", "cols", 4, true, function()
 			Menu.ColoredText("WaveClear", 0x0099FFFF, false)
+                Menu.Slider("WM", "Mana", 50, 0, 100, 1)
 				Menu.Checkbox("farmQ", "Use Q", true)
                 Menu.Slider("WP", "Save Passive Charges", 3, 3 ,4, 1) 
 				TS = _G.Libs.TargetSelector()
@@ -240,11 +247,16 @@ function Annie.LoadMenu()
             Menu.Checkbox("CQ", "Use Q", true)
             Menu.Checkbox("CW", "Use W", true)
             Menu.Checkbox("CR","Use R",true)
+
             Menu.NextColumn()
+
             Menu.ColoredText("Harass", 0X0099FFFF,false)
+            Menu.Slider("HM", "Mana", 50, 0, 100, 1)
             Menu.Checkbox("HQ", "Use Q", true)
             Menu.Checkbox("HW", "Use W", true)
+
             Menu.NextColumn()
+
             Menu.ColoredText("AutoSpells", 0X0099FFFF,false)
             Menu.Checkbox("Burst", "Burst", true)
             Menu.Checkbox("GE","E when gapclose",true)
